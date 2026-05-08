@@ -25,10 +25,9 @@ def main():
     )
 
     t0 = time.perf_counter()
-    response = chat_model.invoke(conversation)
+    for chunk in chat_model.stream(conversation):
+        print(chunk.text, end="[CHUNK END]", flush=True)
     print(f"chat_model.invoke(conversation) took {time.perf_counter() - t0:.2f}s")
-
-    print(response.content)
 
 @tool('get_weather', description='get weather in a given city', return_direct=False)
 def get_weather(city: str):

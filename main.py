@@ -18,7 +18,7 @@ def main():
     load_dotenv()
 
     chat_model = init_chat_model(
-        model="gemini-3-flash-preview",
+        model="gemini-3.1-flash-lite",
         model_provider="google_genai",
         temperature=0.7,
     )
@@ -45,6 +45,7 @@ def main():
             f"Mention that its capital is {state['capital']} and the current "
             f"temperature there is {state['temperature_celsius']}°C."
         ))
+
         result = chat_model.invoke([msg])
         content = result.content
         text = content if isinstance(content, str) else content[0].get("text", "")
@@ -64,18 +65,17 @@ def main():
 
     config = {"configurable": {"thread_id": "demo-thread"}}
 
-    result = graph.invoke({"country": "France"}, config=config)
-    print(result["response"])
-    print()
+    def stream_response(country: str) -> None:
+        print(f"=== {country} ===")
+        for mode, value in graph.stream(input={"country": country}, config=config, stream_mode=["messages", "updates"]):
+            if mode == "updates":
+                print("updates: " +  str(value))
+                print("chunk type: " + str(type(value)))
+            if mode == "messages":
+                print("messages: " + str(value))
+                print("messages type: " + str(type(value)))
 
-    result2 = graph.invoke({"country": "Japan"}, config=config)
-    print(result2["response"])
-    print()
-
-    print("--- Checkpoints ---")
-    for checkpoint in checkpointer.list(config):
-        print(checkpoint)
-
+    stream_response("France")
 
 if __name__ == "__main__":
     main()
